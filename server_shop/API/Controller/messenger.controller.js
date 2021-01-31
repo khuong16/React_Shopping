@@ -1,4 +1,5 @@
-var Messenger = require('../../Model/messenger.model')
+const Messenger = require('../../Model/messenger.model')
+const Users = require('../../Model/users.model')
 
 module.exports.index = async (req, res) => {
 
@@ -37,4 +38,43 @@ module.exports.send = async (req, res) => {
 
     res.send("Thành Công!")
 
+}
+
+// Hàm này là khi user đăng ký account thì nó sẽ tự động push vào messenger
+// Để tạo database cuộc trò chuyện
+module.exports.conversation = async (req, res) => {
+
+    // id_admin
+    const id_admin = '5ff808424e24e9118cee77b2'
+
+    const email = req.query.email
+
+    const password = req.query.password
+
+    // Tìm user để lấy id_user
+    const user = await Users.findOne({ email: email, password: password})
+
+    const id_user = user._id.toString()
+
+    // Tạo ra 2 cuộc trò chuyện
+    // 1 cái của admin
+    const data1 = {
+        id_user1: id_admin,
+        id_user2: id_user,
+        content: []
+    }
+
+    // 1 cái của user
+    const data2 = {
+        id_user1: id_user,
+        id_user2: id_admin,
+        content: []
+    }
+
+    Messenger.insertMany(data1)
+
+    Messenger.insertMany(data2)
+
+    res.send("Thanh Cong")
+    
 }

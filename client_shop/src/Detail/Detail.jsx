@@ -6,6 +6,7 @@ import alertify from 'alertifyjs'
 import { addCart } from '../Redux/Action/ActionCart';
 import CartAPI from '../API/CartAPI';
 import queryString from 'query-string'
+import CommentAPI from '../API/CommentAPI';
 
 function Detail(props) {
 
@@ -23,6 +24,121 @@ function Detail(props) {
     const listCart = useSelector(state => state.Cart.listCart)
 
     const [product, setProduct] = useState([])
+
+    const [star, setStar] = useState(1)
+
+    const [comment, setComment] = useState('')
+
+    // id_user đã đăng nhập
+    const idUser = useSelector(state => state.Session.idUser)
+
+    // Listcomment
+    const [list_comment, set_list_comment] = useState([])
+
+    // state này dùng để load lại comment khi user gửi comment lên
+    const [load_comment, set_load_comment] = useState(false)
+
+    // Hàm này dùng để lấy dữ liệu comment
+    // Hàm này sẽ chạy lại phụ thuộc vào id Param
+    useEffect(() => {
+
+        const fetchData = async () => {
+
+            const params = {
+                idProduct: id
+            }
+
+            const query = '?' + queryString.stringify(params)
+
+            const response = await CommentAPI.getCommentProduct(query)
+            console.log(response)
+
+            set_list_comment(response)
+
+        }
+
+        fetchData()
+
+    }, [id])
+
+
+    // Hàm thay đổi sao đánh giá
+    const onChangeStar = (e) => {
+
+        setStar(e.target.value)
+        
+    }
+
+    // Hàm thay đổi comment
+    const onChangeComment = (e) => {
+
+        setComment(e.target.value)
+
+    }
+
+    // Hàm này dùng để bình luận
+    const handlerComment = () => {
+
+        if (idUser === ''){
+            alertify.set('notifier','position', 'bottom-left');
+            alertify.error('Vui Lòng Kiểm Tra Đăng Nhập!');
+            return
+        }
+
+        const fetchSendComment = async () => {
+
+            const params = {
+                idProduct: id,
+                idUser: sessionStorage.getItem('id_user'),
+                fullname: sessionStorage.getItem('name_user'),
+                content: comment,
+                star: star
+            }
+    
+            const query = '?' + queryString.stringify(params)
+    
+            const response = await CommentAPI.postCommentProduct(query)
+            console.log(response)
+    
+            set_load_comment(true)
+
+        }
+
+        fetchSendComment()
+
+        setComment('')
+
+    }
+
+
+    // Hàm này dùng để load lại dữ liệu comment
+    // Phụ thuộc vào state load_comment
+    useEffect(() => {
+
+        if (load_comment){
+
+            const fetchData = async () => {
+
+                const params = {
+                    idProduct: id
+                }
+    
+                const query = '?' + queryString.stringify(params)
+    
+                const response = await CommentAPI.getCommentProduct(query)
+                console.log(response)
+    
+                set_list_comment(response)
+    
+            }
+    
+            fetchData()
+
+            set_load_comment(false)
+        }
+
+    }, [load_comment])
+
 
     //Hàm này gọi API và cắt chỉ lấy 4 sản phẩm
     useEffect(() => {
@@ -80,11 +196,13 @@ function Detail(props) {
 
     }, [id])
 
+
     //Phần này dùng để xem review hay description
     const [review, setReview] = useState('description')
     const handlerReview = (value) => {
         setReview(value)
     }
+
 
     //Hàm này là Thêm Sản Phẩm
     const addToCart = () => {
@@ -225,11 +343,23 @@ function Detail(props) {
                 </div>
                 <div className="form-group">
                     <label htmlFor="exampleFormControlTextarea1">Comment:</label>
-                    <textarea className="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
+                    <textarea className="form-control" rows="3" onChange={onChangeComment} value={comment}></textarea>
                 </div>
-                <div className="d-flex justify-content-end">
+                <div className="d-flex justify-content-between">
+                    <div className="d-flex w-25">
+                        <span className="mt-2">Evaluate: </span>
+                        &nbsp;
+                        &nbsp;
+                        <input className="form-control w-25" type="number" min="1" max="5" value={star} onChange={onChangeStar} />
+                        &nbsp;
+                        &nbsp;
+                        <span className="mt-2">Star</span>
+                    </div>
+                    <div>
                     <a className="btn btn-dark btn-sm btn-block px-0 text-white" 
-                        style={{width: '12rem', }} >Send</a>
+                        style={{width: '12rem', }} onClick={handlerComment}>Send</a>
+                    </div>
+
                 </div>
                 <br/>
                 <ul className="nav nav-tabs border-0">
@@ -260,34 +390,25 @@ function Detail(props) {
                             <div className="p-4 p-lg-5 bg-white">
                                 <div className="row">
                                     <div className="col-lg-8">
-                                        <div className="media mb-3"><img className="rounded-circle" src="img/customer-1.png" alt="" width="50" />
-                                            <div className="media-body ml-3">
-                                                <h6 className="mb-0 text-uppercase">Jason Doe</h6>
-                                                <p className="small text-muted mb-0 text-uppercase">20 May 2020</p>
-                                                <ul className="list-inline mb-1 text-xs">
-                                                    <li className="list-inline-item m-0"><i className="fas fa-star text-warning"></i></li>
-                                                    <li className="list-inline-item m-0"><i className="fas fa-star text-warning"></i></li>
-                                                    <li className="list-inline-item m-0"><i className="fas fa-star text-warning"></i></li>
-                                                    <li className="list-inline-item m-0"><i className="fas fa-star text-warning"></i></li>
-                                                    <li className="list-inline-item m-0"><i className="fas fa-star-half-alt text-warning"></i></li>
-                                                </ul>
-                                                <p className="text-small mb-0 text-muted">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-                                            </div>
-                                        </div>
-                                        <div className="media"><img className="rounded-circle" src="img/customer-2.png" alt="" width="50" />
-                                            <div className="media-body ml-3">
-                                                <h6 className="mb-0 text-uppercase">Jason Doe</h6>
-                                                <p className="small text-muted mb-0 text-uppercase">20 May 2020</p>
-                                                <ul className="list-inline mb-1 text-xs">
-                                                    <li className="list-inline-item m-0"><i className="fas fa-star text-warning"></i></li>
-                                                    <li className="list-inline-item m-0"><i className="fas fa-star text-warning"></i></li>
-                                                    <li className="list-inline-item m-0"><i className="fas fa-star text-warning"></i></li>
-                                                    <li className="list-inline-item m-0"><i className="fas fa-star text-warning"></i></li>
-                                                    <li className="list-inline-item m-0"><i className="fas fa-star-half-alt text-warning"></i></li>
-                                                </ul>
-                                                <p className="text-small mb-0 text-muted">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-                                            </div>
-                                        </div>
+                                        {
+                                            list_comment && list_comment.map(value => (
+                                                <div className="media mb-3" key={value._id}>
+                                                    <img className="rounded-circle" src="https://img.icons8.com/color/36/000000/administrator-male.png" alt="" width="50" />
+                                                    <div className="media-body ml-3">
+                                                        <h6 className="mb-0 text-uppercase">{value.fullname}</h6>
+                                                        <p className="small text-muted mb-0 text-uppercase">dd/mm/yyyy</p>
+                                                        <ul className="list-inline mb-1 text-xs">
+                                                            <li className="list-inline-item m-0"><i className={value.star1}></i></li>            
+                                                            <li className="list-inline-item m-0"><i className={value.star2}></i></li>            
+                                                            <li className="list-inline-item m-0"><i className={value.star3}></i></li>            
+                                                            <li className="list-inline-item m-0"><i className={value.star4}></i></li>            
+                                                            <li className="list-inline-item m-0"><i className={value.star5}></i></li>                    
+                                                         </ul>
+                                                        <p className="text-small mb-0 text-muted">{value.content}</p>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        }
                                     </div>
                                 </div>
                             </div>

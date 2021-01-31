@@ -67,7 +67,8 @@ module.exports.pagination = async (req, res) => {
 
     }else{
         var newData = paginationProducts.filter(value => {
-            return value.name.toUpperCase().indexOf(keyWordSearch.toUpperCase()) !== -1
+            return value.name.toUpperCase().indexOf(keyWordSearch.toUpperCase()) !== -1 ||
+            value.price.toUpperCase().indexOf(keyWordSearch.toUpperCase()) !== -1 || value.category.toUpperCase().indexOf(keyWordSearch.toUpperCase()) !== -1
         })
     
         res.json(newData)

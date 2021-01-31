@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 
 function Menu(props) {
 
@@ -16,24 +15,24 @@ function Menu(props) {
                         <li className="nav-small-cap"><span className="hide-menu">Components</span></li>
                         <li className="sidebar-item"> <a className="sidebar-link sidebar-link" href='/chat'>
                             <i data-feather="message-square" className="feather-icon"></i><span
-                                className="hide-menu">Chat</span></a></li>
+                                className="hide-menu">Customer</span></a></li>
 
                         <li className="sidebar-item"> <a className="sidebar-link has-arrow" href="#"
                             aria-expanded="false"><i data-feather="grid" className="feather-icon"></i><span
                                 className="hide-menu">Tables </span></a>
                             <ul aria-expanded="false" className="collapse  first-level base-level-line">
-                                <li className="sidebar-item"><a href="#" className="sidebar-link"><span
+                                <li className="sidebar-item"><a href="/users" className="sidebar-link"><span
                                     className="hide-menu">
                                     Datatables Users
                                         </span></a>
                                 </li>
-                                <li className="sidebar-item"><a href="#" className="sidebar-link"><span className="hide-menu">
+                                <li className="sidebar-item"><a href="/products" className="sidebar-link"><span className="hide-menu">
                                     Datatables Products
                                         </span></a>
                                 </li>
-                                <li className="sidebar-item"><a href="#" className="sidebar-link"><span
+                                <li className="sidebar-item"><a href="/history" className="sidebar-link"><span
                                     className="hide-menu">
-                                    Datatables Carts
+                                    Datatables History
                                         </span></a>
                                 </li>
                             </ul>

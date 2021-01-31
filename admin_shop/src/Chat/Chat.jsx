@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import UserAPI from '../API/UserAPI';
 import queryString from 'query-string'
 import MessengerAPI from '../API/MessengerAPI';
+import './Chat.css'
 
 import io from "socket.io-client";
 const socket = io("http://localhost:3000");
@@ -16,8 +17,21 @@ function Chat(props) {
 
     const [message, setMessage] = useState([])
 
+    const [load, setLoad] = useState(false)
+
+    const [textMessage, setTextMessage] = useState('')
+
+
+    const onChangeText = (e) => {
+
+        setTextMessage(e.target.value)
+
+    }
+
     // Hàm này dùng để tìm ra những user khác với admin
     useEffect(() => {
+
+        sessionStorage.setItem('name_user', 'ADMIN')
 
         const fetchData = async () => {
 
@@ -36,12 +50,14 @@ function Chat(props) {
 
     }, [])
 
+
     // Hàm này dùng để lấy id_user2
     const handler_id_user = (value) => {
 
         set_id_user2(value)
 
     }
+
 
     // Hàm này dùng để load dữ liệu message và nó sẽ chạy lại khi state id_user2 thay đổi
     // Tức là khi admin chọn người dùng mà admin muốn chat thì state id_user2 sẽ thay đổi
@@ -68,6 +84,91 @@ function Chat(props) {
     }, [id_user2])
 
 
+    // Đây là hàm lấy dữ liệu từ api dựa vào state load
+    // Dùng để load lại tin nhắn khi có socket từ server gửi tới
+    useEffect(() => {
+
+        if (load){
+            const fetchData = async () => {
+
+                const params = {
+                    id_user1: id_admin,
+                    id_user2: id_user2
+                }
+    
+                const query = '?' + queryString.stringify(params)
+    
+                const response = await MessengerAPI.getMessage(query)
+    
+                setMessage(response.content)
+
+            }
+    
+            fetchData()
+
+            setLoad(false)
+        }
+
+    }, [load])    
+
+
+    //Hàm này dùng để nhận socket từ server gửi lên
+    useEffect(() => {
+
+        //Nhận dữ liệu từ server gửi lên thông qua socket với key receive_message
+        socket.on('receive_message', (data) => {
+            
+            //Sau đó nó sẽ setLoad gọi lại hàm useEffect lấy lại dữ liệu
+            setLoad(true)
+  
+        })
+
+    }, [])
+
+
+    // Hàm này dùng để gửi tin nhắn cho khách hàng
+    const handlerSend = () => {
+
+        console.log(textMessage)
+
+        if (!id_user2){
+            return
+        }
+
+        //Khi gửi tin nhắn thì nó sẽ lấy id của cả 2 người
+        //Với cái key category có value là send
+        //Vì là gửi tin nhắn
+        const data = {
+            id_user1: id_admin,
+            id_user2: id_user2,
+            id: Math.random().toString(),
+            message: textMessage, 
+            name: sessionStorage.getItem('name_user'),
+            category: "send"
+        }
+
+        //Sau đó nó emit dữ liệu lên server bằng socket với key send_message và value data
+        socket.emit('send_message', data)
+
+        //Tiếp theo nó sẽ postdata lên api đưa dữ liệu vào database
+        const postData = async () => {
+
+            const query = '?' + queryString.stringify(data)
+
+            const response = await MessengerAPI.postMessage(query)
+
+            console.log(response)
+
+            //Sau đó gọi hàm setLoad để useEffect lấy lại dữ liệu sau khi update
+            setLoad(true)
+
+        }
+
+        postData()        
+
+        setTextMessage('')
+
+    }
 
     return (
         <div className="page-wrapper">
@@ -103,8 +204,8 @@ function Chat(props) {
                                                 <div className="message-center">
                                                     {
                                                         another && another.map(value => (
-                                                            (<a href="#" key={value._id} onClick={() => handler_id_user(value._id)}
-                                                                className="message-item d-flex align-items-center border-bottom px-3 py-2">
+                                                            (<a key={value._id} onClick={() => handler_id_user(value._id)}
+                                                                className="message-item d-flex align-items-center border-bottom px-3 py-2 active_user">
                                                                 <div className="user-img"> <img src="https://img.icons8.com/color/36/000000/administrator-male.png"
                                                                     alt="user" className="img-fluid rounded-circle"
                                                                     width="40px" /> <span
@@ -136,7 +237,7 @@ function Chat(props) {
                                                         <li className="chat-item odd list-style-none mt-3" key={value.id}>
                                                             <div className="chat-content text-right d-inline-block pl-3">
                                                                 <div className="box msg p-2 d-inline-block mb-1">
-                                                                    {value.message}
+                                                                    You: {value.message}
                                                                 </div>
                                                                 <br />
                                                             </div>
@@ -149,13 +250,13 @@ function Chat(props) {
                                                                         className="rounded-circle" width="45" />
                                                                 </div>
                                                                 <div className="chat-content d-inline-block pl-3">
-                                                                    <h6 className="font-weight-medium">{value.fullname}</h6>
+                                                                    <h6 className="font-weight-medium">{value.name}</h6>
                                                                     <div className="msg p-2 d-inline-block mb-1">
                                                                         {value.message}
                                                                     </div>
                                                                 </div>
                                                                 <div className="chat-time d-block font-10 mt-1 mr-0 mb-3">
-                                                                    10:57 am
+                                                                    
                                                                 </div>
                                                             </li>
                                                         )
@@ -171,12 +272,13 @@ function Chat(props) {
                                             <div className="col-9">
                                                 <div className="input-field mt-0 mb-0">
                                                     <input id="textarea1" placeholder="Type and enter"
-                                                        className="form-control border-0" type="text" />
+                                                        className="form-control border-0" 
+                                                        type="text" onChange={onChangeText} value={textMessage} />
                                                 </div>
                                             </div>
                                             <div className="col-3">
                                                 <a className="btn-circle btn-lg btn-cyan float-right text-white"
-                                                    href="#"><i className="fas fa-paper-plane"></i></a>
+                                                    onClick={handlerSend}><i className="fas fa-paper-plane"></i></a>
                                             </div>
                                         </div>
                                     </div>
@@ -188,7 +290,7 @@ function Chat(props) {
             </div>
             <footer className="footer text-center">
                 All Rights Reserved by Adminmart. Designed and Developed by <a
-                    href="https://wrappixel.com">WrapPixel</a>.
+                    href="https://www.facebook.com/KimTien.9920/">Tien Kim</a>.
             </footer>
         </div>
     );

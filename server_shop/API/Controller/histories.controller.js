@@ -19,3 +19,11 @@ module.exports.detail = async (req, res) => {
     res.json(histories)
 
 }
+
+module.exports.history = async (req, res) => {
+
+    const histories = await Histories.find()
+
+    res.json(histories)
+
+}

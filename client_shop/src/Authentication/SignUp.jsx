@@ -3,6 +3,7 @@ import { Link, Redirect } from 'react-router-dom';
 import UserAPI from '../API/UserAPI';
 import './Auth.css'
 import queryString from 'query-string'
+import MessengerAPI from '../API/MessengerAPI';
 
 SignUp.propTypes = {
 
@@ -119,6 +120,23 @@ function SignUp(props) {
                             }
                             
                             fetchSignUp()
+
+                            // Hàm này dùng để tạo các conversation cho user và admin
+                            const fetchConversation = async () => {
+
+                                const params = {
+                                    email: email,
+                                    password: password 
+                                }
+
+                                const query = '?' + queryString.stringify(params)
+
+                                const response = await MessengerAPI.postConversation(query)
+                                console.log(response)
+
+                            }
+
+                            fetchConversation()
 
                         }
                     }

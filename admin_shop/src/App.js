@@ -1,8 +1,11 @@
 import { BrowserRouter, Route, Switch } from "react-router-dom";
 import Chat from "./Chat/Chat";
 import Header from "./Header/Header";
+import History from "./History/History";
 import Home from "./Home/Home";
 import Menu from "./Menu/Menu";
+import Products from "./Products/Products";
+import Users from "./Users/Users";
 
 function App() {
   return (
@@ -26,6 +29,9 @@ function App() {
 
             <Route exact path='/' component={Home} />
             <Route path='/chat' component={Chat} />
+            <Route path='/users' component={Users} />
+            <Route path='/products' component={Products} />
+            <Route path='/history' component={History} />
 
           </Switch>
 

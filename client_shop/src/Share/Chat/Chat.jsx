@@ -2,11 +2,11 @@ import React, { useEffect, useState } from 'react';
 import './Chat.css'
 import queryString from 'query-string'
 
-import io from "socket.io-client";
 import MessengerAPI from '../../API/MessengerAPI';
 import { useSelector } from 'react-redux';
-const socket = io("http://localhost:3000");
 
+import io from "socket.io-client";
+const socket = io("http://localhost:3000");
 
 function Chat(props) {
 
@@ -18,10 +18,12 @@ function Chat(props) {
 
     const id_admin = '5ff808424e24e9118cee77b2'
 
-    //Get IdUser từ redux khi user đã đăng nhập
-    const idUser = useSelector(state => state.Session.idUser)
+    //Get id_user từ redux khi user đã đăng nhập
+    const id_user = useSelector(state => state.Session.idUser)
 
     const [loadMessage, setLoadMessage] = useState('')
+
+    const [load, setLoad] = useState(false)
 
     // Hàm này dùng để mở hộp thoại chat
     const onChat = () => {
@@ -36,15 +38,15 @@ function Chat(props) {
 
     }
 
-    // Hàm này là thay đổi state loadMessage phụ thuộc vào redux idUser
+    // Hàm này là thay đổi state loadMessage phụ thuộc vào redux id_user
     // Nhầm mục đích để gọi lại hàm useEffect loadmessage
     useEffect(() => {
-        if (!idUser){
+        if (!id_user){
             setLoadMessage('')
         }else{
-            setLoadMessage(idUser)
+            setLoadMessage(id_user)
         }
-    }, [idUser])
+    }, [id_user])
 
 
     const handlerSend = () => {
@@ -55,6 +57,8 @@ function Chat(props) {
         //Với cái key category có value là send
         //Vì là gửi tin nhắn
         const data = {
+            id_user1: id_user,
+            id_user2: id_admin,
             id: Math.random().toString(),
             message: textMessage, 
             name: sessionStorage.getItem('name_user'),
@@ -64,9 +68,53 @@ function Chat(props) {
         //Sau đó nó emit dữ liệu lên server bằng socket với key send_message và value data
         socket.emit('send_message', data)
 
+        //Tiếp theo nó sẽ postdata lên api đưa dữ liệu vào database
+        const postData = async () => {
+
+            const query = '?' + queryString.stringify(data)
+
+            const response = await MessengerAPI.postMessage(query)
+
+            console.log(response)
+
+            //Sau đó gọi hàm setLoad để useEffect lấy lại dữ liệu sau khi update
+            setLoad(true)
+
+        }
+
+        postData()        
+
         setTextMessage('')
 
     }
+
+    // Hàm này dùng để load dữ liệu message của user khi user gửi tin nhán
+    useEffect(() => {
+
+        if (load){
+
+            const fetchData = async () => {
+
+                const params = {
+                    id_user1: id_user,
+                    id_user2: id_admin
+                }
+    
+                const query = '?' + queryString.stringify(params)
+    
+                const response = await MessengerAPI.getMessage(query)
+    
+                setMessage(response.content)
+    
+            }
+    
+            fetchData()
+
+            setLoad(false)
+
+        }
+        
+    }, [load])
 
 
     // Hàm này dùng để load dữ liệu message của user
@@ -76,7 +124,7 @@ function Chat(props) {
         const fetchData = async () => {
 
             const params = {
-                id_user1: idUser,
+                id_user1: id_user,
                 id_user2: id_admin
             }
 
@@ -91,6 +139,20 @@ function Chat(props) {
         fetchData()
         
     }, [loadMessage])
+
+
+    //Hàm này dùng để nhận socket từ server gửi lên
+    useEffect(() => {
+
+        //Nhận dữ liệu từ server gửi lên thông qua socket với key receive_message
+        socket.on('receive_message', (data) => {
+            
+            //Sau đó nó sẽ setLoad gọi lại hàm useEffect lấy lại dữ liệu
+            setLoad(true)
+  
+        })
+
+    }, [])
 
 
     useEffect(() => {
@@ -152,7 +214,7 @@ function Chat(props) {
                                         ) : (
                                             <div className="media media-chat" key={value.id}> <img className="avatar" src="https://img.icons8.com/color/36/000000/administrator-male.png" alt="..." />
                                                 <div className="media-body" key={value.id}>
-                                                    <p>{value.message}</p>
+                                                    <p>ADMIN: {value.message}</p>
                                                 </div>
                                             </div>
                                         )

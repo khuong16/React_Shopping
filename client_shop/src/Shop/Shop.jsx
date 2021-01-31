@@ -115,7 +115,7 @@ function Shop(props) {
 
     }, [pagination])
 
-    //Gọi làm Pagination
+    //Gọi hàm Pagination
     useEffect(() => {
 
         const fetchData = async () => {

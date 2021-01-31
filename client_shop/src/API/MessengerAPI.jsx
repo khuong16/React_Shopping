@@ -10,6 +10,11 @@ const MessengerAPI = {
     postMessage: (query) => {
         const url = `/messenger/send${query}`
         return axiosClient.post(url)
+    },
+
+    postConversation: (query) => {
+        const url = `/messenger/conversation${query}`
+        return axiosClient.post(url)
     }
 
 }

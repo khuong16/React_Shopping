@@ -4,6 +4,9 @@ import CartAPI from '../API/CartAPI';
 import CheckoutAPI from '../API/CheckoutAPI';
 import './Checkout.css'
 
+import io from "socket.io-client";
+const socket = io("http://localhost:3000");
+
 function Checkout(props) {
 
     const [carts, setCarts] = useState([])
@@ -160,7 +163,12 @@ function Checkout(props) {
             }
 
             sendMail()
+            
+            const data = sessionStorage.getItem('id_user')
 
+            // Gửi socket lên server
+            socket.emit('send_order', data)
+        
             //Dùng setTimeout delay 3s
             //Sau 4s nó sẽ thực hiện 
             setTimeout(() => {

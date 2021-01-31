@@ -49,7 +49,7 @@ function Header(props) {
                                 <img src="../assets/images/users/IMG_6225.jpg" alt="user" className="rounded-circle"
                                     width="40" />
                                 <span className="ml-2 d-none d-lg-inline-block"><span>Hello,</span> <span
-                                    className="text-dark">Nguyen Kim Tien</span> <i data-feather="chevron-down"
+                                    className="text-dark">ADMIN</span> <i data-feather="chevron-down"
                                         className="svg-icon"></i></span>
                             </a>
                             <div className="dropdown-menu dropdown-menu-right user-dd animated flipInY">
